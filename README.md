@@ -63,17 +63,12 @@ wind-prediction/
 │   ├── q1_baseline.py       # 仅 validation 超参数选择
 │   ├── q2_reliability.py    # validation 误差增长与分量误差
 │   ├── q3_transfer.py       # transition 留出测试 + 排除 reverse_* 严格对照
-│   ├── sweep_stable.py      # k / AR 阶 / ridge α 的 validation 扫描
-│   ├── make_figures_pil.py  # 由 results/ 出图（PIL，不需要 matplotlib）
-│   ├── make_prediction_figure.py # 生成 test_a2@199 的涡量对比图
-│   └── build_deliverables.py# 由 results/ 生成可选自动摘要稿与 PDF
+│   └── sweep_stable.py      # k / AR 阶 / ridge α 的 validation 扫描
 ├── configs/model_config.json
 ├── results/                 # 汇总、逐时刻 RMSE、集成可靠性及第三问对照结果
-├── figures/                 # 6 张图（由 results/ 与原始速度场生成）
 ├── tests/test_core.py       # 5 个单元测试
 ├── deliverables/A题_POD-AR_答辩汇报.pptx
-├── requirements.txt         # numpy + h5py
-└── requirements-deliverables.txt   # reportlab / python-pptx / pillow
+└── requirements.txt         # numpy + h5py
 ```
 
 ## 复现
@@ -93,19 +88,8 @@ python -m unittest discover -s tests -v
 `reliability_summary.json`、`summary.json`、`model_diagnostics.json` 写进 `results/`；
 加 `--no-write` 则只打印不落盘。
 
-出图与重新打包是可选的：
-
-```bash
-python -m pip install -r requirements-deliverables.txt   # pillow（出图）
-python experiments/make_figures_pil.py                   # 由 results/ 生成 figures/
-python experiments/make_prediction_figure.py --h5 bridge_a_flow_light.h5
-
-python experiments/build_deliverables.py                 # 可选自动摘要稿/PDF，不覆盖答辩稿
-```
-
 `deliverables/A题_POD-AR_答辩汇报.pptx` 与本次冻结配置（50 模态 / AR(3) / 岭 α=3.0）口径一致。
-包里只放这一份答辩稿；早期批次的 PDF 技术报告没有随包提交，避免与当前数字混用。
-`build_deliverables.py` 生成的是 `A题_POD-AR_自动摘要.pptx`，不是手工整理的 11 页答辩稿。
+演示图表已嵌入最终答辩稿，仓库不额外保存重复的导出图片或自动摘要文件。
 
 超参数扫描与可靠性实验（只需 numpy + h5py，各写自己的 csv）：
 
