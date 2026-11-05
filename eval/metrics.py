@@ -40,6 +40,48 @@ def compute_correlation(pred, target, mask):
     return num / den
 
 
+def compute_ensemble_per_frame(ensemble_pred, target, mask):
+    """Compute prediction RMSE, ensemble spread, and interval coverage.
+
+    ensemble_pred: (members, pred_len, 2, H, W)
+    target: (pred_len, 2, H, W)
+    mask: (H, W) bool
+    """
+    ensemble_pred = np.asarray(ensemble_pred)
+    target = np.asarray(target)
+    if ensemble_pred.ndim != 5 or target.ndim != 4:
+        raise ValueError("Expected ensemble_pred=(M,T,2,H,W) and target=(T,2,H,W)")
+    if ensemble_pred.shape[1:] != target.shape:
+        raise ValueError("Ensemble and target shapes do not match")
+
+    ensemble_mean = ensemble_pred.mean(axis=0)
+    ensemble_rmse = compute_rmse_per_frame(ensemble_mean, target, mask)
+
+    flat_pred = ensemble_pred.reshape(
+        ensemble_pred.shape[0], ensemble_pred.shape[1], 2, -1
+    )[:, :, :, mask.reshape(-1)]
+    flat_target = target.reshape(target.shape[0], 2, -1)[
+        :, :, mask.reshape(-1)
+    ]
+    spread = np.std(flat_pred, axis=0, ddof=0)
+    spread = np.sqrt(np.mean(spread ** 2, axis=(1, 2)))
+
+    lower_90, upper_90 = np.quantile(flat_pred, [0.05, 0.95], axis=0)
+    lower_95, upper_95 = np.quantile(flat_pred, [0.025, 0.975], axis=0)
+    coverage_90 = np.mean(
+        (flat_target >= lower_90) & (flat_target <= upper_90), axis=(1, 2)
+    )
+    coverage_95 = np.mean(
+        (flat_target >= lower_95) & (flat_target <= upper_95), axis=(1, 2)
+    )
+    return {
+        "ensemble_mean_rmse": ensemble_rmse,
+        "spread": spread,
+        "coverage_90": coverage_90,
+        "coverage_95": coverage_95,
+    }
+
+
 def appendix_b_eval(bridge_data, predict_fn, input_len=10, pred_len=20):
     """
     Evaluate per Appendix II: 8 fixed windows on test_a2, test_a4.

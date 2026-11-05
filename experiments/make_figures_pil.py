@@ -12,6 +12,7 @@ RES = os.path.join(ROOT, "results")
 OUT = os.path.join(ROOT, "figures")
 F = lambda n: ImageFont.truetype(r"C:\Windows\Fonts\msyh.ttc", n, index=0)
 NAVY, BLUE, ORANGE, GREY = (15, 36, 56), (31, 111, 235), (232, 131, 58), (110, 120, 135)
+TEAL = (42, 157, 143)
 
 
 def read_csv(name):
@@ -79,10 +80,18 @@ def main():
               [BLUE if r["trajectory"] == "test_a2" else ORANGE for r in test], 0.14)
     rel = read_csv("reliability_error_growth.csv")
     hs = [int(r["horizon"]) for r in rel]
-    line_chart("error_growth.png", hs,
-               [("POD-AR", [float(r["rmse_mean"]) for r in rel], BLUE),
-                ("重复最后一帧", [float(r["persistence_rmse"]) for r in rel], ORANGE)],
-               "RMSE", "预测步长（Δt*=0.1）", 0.24)
+    growth_series = [
+        ("POD-AR", [float(r["rmse_mean"]) for r in rel], BLUE),
+        ("重复最后一帧", [float(r["persistence_rmse"]) for r in rel], ORANGE),
+    ]
+    if rel and "ensemble_spread" in rel[0]:
+        growth_series.append(
+            ("20 成员离散度", [float(r["ensemble_spread"]) for r in rel], TEAL)
+        )
+    line_chart(
+        "error_growth.png", hs, growth_series,
+        "RMSE / 集成离散度", "预测步长（Δt*=0.1）", 0.24
+    )
     trans = read_csv("transition_eval.csv")
     keys = ["reverse_a0", "reverse_a3"]
     vals = [sum(float(r["rmse_mean"]) for r in trans if r["trajectory"] == k) /

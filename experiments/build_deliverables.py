@@ -54,6 +54,7 @@ SUMMARY = json_file('summary.json')
 DIAGNOSTICS = json_file('model_diagnostics.json')
 RELIABILITY = json_file('reliability_summary.json')
 TRANSITION = json_file('transition_summary.json')
+TRANSFER = json_file('transition_transfer_summary.json')
 COMMON = csv_file('common_reference.csv')
 VALIDATION = csv_file('validation_reference.csv')
 
@@ -243,15 +244,21 @@ def build_pdf():
         ),
         Paragraph(
             '为评估不确定度，保存训练 AR 单步残差，并对 20 个集成成员逐步重采样。'
-            '随机种子固定为 20261026，结果可复现。集合离散度随误差增长而增大，'
-            '可以作为相对风险信号，但不是经过覆盖率校准的概率区间。',
+            f"随机种子固定为 20261026，结果可复现。集成平均 RMSE 为 "
+            f"{RELIABILITY['ensemble_mean_rmse']:.5f}，平均离散度为 "
+            f"{RELIABILITY['ensemble_spread_mean']:.5f}，与实际 RMSE 的相关系数为 "
+            f"{RELIABILITY['spread_error_correlation']:.3f}。名义 90%/95% 区间的"
+            f"经验覆盖率仅为 {100 * RELIABILITY['coverage_90']:.1f}%/ "
+            f"{100 * RELIABILITY['coverage_95']:.1f}%，说明区间明显偏窄，"
+            '只能作为相对风险信号，不能当作已校准的置信区间。',
             body,
         ),
         Image(str(FIGURES / 'error_growth.png'), width=15.5 * cm, height=7.2 * cm),
         Paragraph('图 3 validation 误差增长与残差集成离散度', caption),
         Paragraph(
-            f"当前配置谱半径为 {DIAGNOSTICS['spectral_radius']:.6f}，接近中性稳定。"
-            '这支持 20 帧范围内的数值稳定，但不支持无限长时外推。',
+            f"当前配置谱半径为 {DIAGNOSTICS['spectral_radius']:.6f}，"
+            '严格来说属于弱不稳定。已测的 20 帧范围内没有明显发散，'
+            '但这不支持无限长时外推。',
             body,
         ),
     ]
@@ -259,27 +266,38 @@ def build_pdf():
     story += [
         Paragraph('5 第三问：transition 压力测试', h1),
         Paragraph(
-            'transition 两条轨迹不作为训练、调参或共同参照测试，只用于跨工况压力实验。'
-            '由于轨迹长度与工况不同，本节直接报告绝对误差，不把与 validation 的百分比差异解释为因果退化。',
+            'transition 两条轨迹不参与训练、调参或共同参照测试，只用于留出轨迹压力实验。'
+            '但 train 中已经有 reverse_a1，因此全训练模型不是零样本反向工况模型。'
+            '本节同时报告排除全部 reverse_* 训练轨迹后的严格对照。',
             body,
         ),
     ]
-    transition_rows = [['轨迹', '窗口数', '模型 RMSE', '持续性基线 RMSE']]
-    for name, item in TRANSITION['transition'].items():
-        transition_rows.append([
-            name,
-            str(item['windows']),
-            f"{item['model_rmse_mean']:.5f}",
-            f"{item['persistence_rmse_mean']:.5f}",
-        ])
+    transition_rows = [['训练范围', '轨迹', '模型 RMSE', '持续性基线 RMSE']]
+    model_labels = {
+        'all_train': '全部 train',
+        'forward_only': '排除 reverse_*',
+    }
+    for model_name, model_result in TRANSFER['models'].items():
+        for name in ('reverse_a0', 'reverse_a3'):
+            item = model_result['transition'][name]
+            transition_rows.append([
+                model_labels[model_name],
+                name,
+                f"{item['model_rmse_mean']:.5f}",
+                f"{item['persistence_rmse_mean']:.5f}",
+            ])
     story += [pdf_table(transition_rows, widths=[4 * cm, 3 * cm, 4 * cm, 4.5 * cm])]
     story += [
         Spacer(1, 0.3 * cm),
         Image(str(FIGURES / 'transition_rmse.png'), width=16 * cm, height=7 * cm),
-        Paragraph('图 4 transition 滚动窗口误差（实线：POD-AR；虚线：持续性）', caption),
+        Paragraph('图 4 全训练模型在两套 transition 轨迹上的平均 RMSE', caption),
         Paragraph(
-            '结果表明模型在两个 transition 子集上均保持短期预测优势，'
-            '但不足以证明广义物理普适性。更长、更多工况的独立测试仍然必要。',
+            '全部 train 模型的总体 RMSE 为 '
+            f"{TRANSFER['models']['all_train']['transition']['overall_model_rmse_mean']:.5f}；"
+            '排除 reverse_a1 后为 '
+            f"{TRANSFER['models']['forward_only']['transition']['overall_model_rmse_mean']:.5f}。"
+            '误差仅小幅上升，说明同几何、同运行工况族内存在有限短时迁移，'
+            '但仍不足以证明广义物理普适性。',
             body,
         ),
     ]
@@ -288,7 +306,8 @@ def build_pdf():
         Paragraph('6 局限与复现', h1),
         Paragraph(
             '主要局限包括：只使用最后 10 帧历史；POD 截断损失约 18.5% 训练能量；'
-            '谱半径接近 1；transition 样本较少；RMSE 不能单独证明涡结构完全正确。',
+            '谱半径略大于 1，属于弱不稳定；集成区间未校准；transition 样本较少；'
+            'RMSE 不能单独证明涡结构完全正确。',
             body,
         ),
         Paragraph(
@@ -450,7 +469,7 @@ def build_pptx():
     ppt_footer(slide, 5)
 
     slide = presentation.slides.add_slide(blank)
-    ppt_title(slide, '误差增长与不确定度', 'validation-only，残差重采样集成')
+    ppt_title(slide, '误差增长与不确定度', 'validation-only；20 成员残差集成')
     slide.shapes.add_picture(str(FIGURES / 'error_growth.png'), PInches(0.7), PInches(1.4), width=PInches(9.0))
     ppt_metric(slide, 9.95, 1.55, 2.6, '第 1 帧 RMSE', f"{RELIABILITY['rmse_horizon_1']:.5f}")
     ppt_metric(slide, 9.95, 2.9, 2.6, '第 20 帧 RMSE', f"{RELIABILITY['rmse_horizon_20']:.5f}", ORANGE)
@@ -459,21 +478,27 @@ def build_pptx():
         9.95,
         4.25,
         2.6,
-        '集成成员',
-        str(RELIABILITY.get('ensemble_members', '—')),
+        '90% 区间覆盖率',
+        f"{100 * RELIABILITY['coverage_90']:.1f}%",
         NAVY,
     )
     ppt_footer(slide, 6)
 
     slide = presentation.slides.add_slide(blank)
-    ppt_title(slide, '第三问：transition 压力测试', '只报告绝对误差，不做不可比百分比结论')
+    ppt_title(slide, '第三问：留出轨迹与严格对照', 'train 已含 reverse_a1，不能宣称零样本反向工况')
     slide.shapes.add_picture(str(FIGURES / 'transition_rmse.png'), PInches(0.7), PInches(1.4), width=PInches(9.2))
-    ppt_metric(slide, 10.15, 1.55, 2.4, 'reverse_a0', f"{TRANSITION['transition']['reverse_a0']['model_rmse_mean']:.4f}")
-    ppt_metric(slide, 10.15, 2.9, 2.4, 'reverse_a3', f"{TRANSITION['transition']['reverse_a3']['model_rmse_mean']:.4f}", ORANGE)
+    ppt_metric(slide, 10.15, 1.55, 2.4, '全训练 rev_a0', f"{TRANSFER['models']['all_train']['transition']['reverse_a0']['model_rmse_mean']:.4f}")
+    ppt_metric(slide, 10.15, 2.9, 2.4, '全训练 rev_a3', f"{TRANSFER['models']['all_train']['transition']['reverse_a3']['model_rmse_mean']:.4f}", ORANGE)
     ppt_text(
         slide,
-        '结果支持有限跨工况迁移，\n不构成物理普适性证明。',
-        10.1, 4.55, 2.6, 1.1, size=13, color=GRAY
+        f"排除 reverse_* 重训\nrev_a0 {TRANSFER['models']['forward_only']['transition']['reverse_a0']['model_rmse_mean']:.4f}\n"
+        f"rev_a3 {TRANSFER['models']['forward_only']['transition']['reverse_a3']['model_rmse_mean']:.4f}",
+        9.95, 4.25, 2.9, 1.3, size=13, color=NAVY, bold=True
+    )
+    ppt_text(
+        slide,
+        '严格对照误差仅小幅上升，\n支持有限短时迁移，\n不构成物理普适性证明。',
+        9.95, 5.65, 2.9, 1.0, size=11, color=GRAY
     )
     ppt_footer(slide, 7)
 

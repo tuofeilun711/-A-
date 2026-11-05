@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from data.h5_loader import create_sequences
-from eval.metrics import compute_rmse
+from eval.metrics import compute_ensemble_per_frame, compute_rmse
 from models.pod_ar import PODFlowPredictor
 
 
@@ -22,6 +22,16 @@ class MetricTests(unittest.TestCase):
         inputs, targets = create_sequences(data, input_len=3, pred_len=2)
         self.assertEqual(inputs.shape, (8, 3, 1, 1))
         self.assertEqual(targets.shape, (8, 2, 1, 1))
+
+    def test_ensemble_diagnostics(self):
+        mask = np.ones((2, 3), dtype=bool)
+        target = np.zeros((2, 2, 2, 3), dtype=np.float32)
+        ensemble = np.repeat(target[None], 20, axis=0)
+        diagnostics = compute_ensemble_per_frame(ensemble, target, mask)
+        np.testing.assert_allclose(diagnostics["ensemble_mean_rmse"], 0.0)
+        np.testing.assert_allclose(diagnostics["spread"], 0.0)
+        np.testing.assert_allclose(diagnostics["coverage_90"], 1.0)
+        np.testing.assert_allclose(diagnostics["coverage_95"], 1.0)
 
 
 class ModelTests(unittest.TestCase):

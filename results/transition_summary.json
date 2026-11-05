@@ -1,19 +1,20 @@
 {
-  "role_note": "validation is the in-distribution reference; both transition trajectories are independent stress tests.",
-  "validation_reference_rmse": 0.10247813388705254,
+  "role_note": "validation is the in-distribution reference. The two transition trajectories are held out from fitting and tuning, but reverse_a1 is present in train, so this result is not a zero-shot reverse test.",
+  "validation_reference_rmse": 0.10247989948838948,
   "transition": {
     "reverse_a0": {
       "windows": 15,
-      "model_rmse_mean": 0.10210498573879402,
-      "model_rmse_std": 0.006866716228854218,
+      "model_rmse_mean": 0.1021085850149393,
+      "model_rmse_std": 0.006868162133472609,
       "persistence_rmse_mean": 0.17524003302057584
     },
     "reverse_a3": {
       "windows": 11,
-      "model_rmse_mean": 0.10281157991425557,
-      "model_rmse_std": 0.006336589912508263,
+      "model_rmse_mean": 0.10281109823422,
+      "model_rmse_std": 0.0063357704422012375,
       "persistence_rmse_mean": 0.1884495354511521
     }
   },
-  "conclusion": "POD modes and trajectory-bounded pooled AR dynamics retain short-horizon accuracy on the reverse-flow stress test, but the result does not establish general physical universality."
+  "conclusion": "The all-train model retains short-horizon accuracy on two held-out transition trajectories. See transition_transfer_summary.json for the forward-only ablation that excludes reverse_a1. Neither result establishes general physical universality.",
+  "strict_ablation_file": "transition_transfer_summary.json"
 }
