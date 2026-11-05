@@ -142,5 +142,42 @@
       }
     }
   },
-  "conclusion": "The all-train result is a held-out-trajectory test, not a zero-shot reverse-condition test. The forward-only ablation measures transfer without reverse_a1; its small degradation supports limited short-horizon transfer within the same geometry and operating family, not physical universality."
+  "conclusion": "The all-train result is a held-out-trajectory test, not a zero-shot reverse-condition test. The forward-only ablation measures transfer without reverse_a1; its small degradation supports limited short-horizon transfer within the same geometry and operating family, not physical universality.",
+  "horizon_comparison": [
+    {
+      "horizon": 1,
+      "all_train_rmse": 0.08721022328192538,
+      "forward_only_rmse": 0.08905468653097298,
+      "absolute_change": 0.0018444632490476065,
+      "relative_change_percent": 2.114962190940606
+    },
+    {
+      "horizon": 5,
+      "all_train_rmse": 0.09067302350745057,
+      "forward_only_rmse": 0.09269929334069743,
+      "absolute_change": 0.0020262698332468576,
+      "relative_change_percent": 2.2346997539795854
+    },
+    {
+      "horizon": 10,
+      "all_train_rmse": 0.10152056424906761,
+      "forward_only_rmse": 0.10315137733564232,
+      "absolute_change": 0.0016308130865747145,
+      "relative_change_percent": 1.6063869410474663
+    },
+    {
+      "horizon": 15,
+      "all_train_rmse": 0.1117665122404243,
+      "forward_only_rmse": 0.11358942134362279,
+      "absolute_change": 0.001822909103198489,
+      "relative_change_percent": 1.6309975740114169
+    },
+    {
+      "horizon": 20,
+      "all_train_rmse": 0.1198486739487359,
+      "forward_only_rmse": 0.12147800748546919,
+      "absolute_change": 0.0016293335367332934,
+      "relative_change_percent": 1.3594923356684108
+    }
+  ]
 }

@@ -136,6 +136,39 @@ def run_q3(h5_path: str, n_modes=50, ar_order=3, no_write=False):
         for row in windows:
             window_rows.append({"model": model_name, **row})
 
+    horizon_rows = []
+    all_train_steps = np.mean(
+        [
+            summary["models"]["all_train"]["transition"][trajectory_id][
+                "per_step_rmse_mean"
+            ]
+            for trajectory_id in ("reverse_a0", "reverse_a3")
+        ],
+        axis=0,
+    )
+    forward_only_steps = np.mean(
+        [
+            summary["models"]["forward_only"]["transition"][trajectory_id][
+                "per_step_rmse_mean"
+            ]
+            for trajectory_id in ("reverse_a0", "reverse_a3")
+        ],
+        axis=0,
+    )
+    for horizon in (1, 5, 10, 15, 20):
+        all_value = float(all_train_steps[horizon - 1])
+        forward_value = float(forward_only_steps[horizon - 1])
+        horizon_rows.append({
+            "horizon": horizon,
+            "all_train_rmse": all_value,
+            "forward_only_rmse": forward_value,
+            "absolute_change": forward_value - all_value,
+            "relative_change_percent": (
+                (forward_value / all_value - 1.0) * 100.0
+            ),
+        })
+    summary["horizon_comparison"] = horizon_rows
+
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     if no_write:
         return summary
@@ -157,6 +190,15 @@ def run_q3(h5_path: str, n_modes=50, ar_order=3, no_write=False):
         writer = csv.DictWriter(handle, fieldnames=list(window_rows[0]))
         writer.writeheader()
         writer.writerows(window_rows)
+    with open(
+        os.path.join(results_dir, "transition_horizon_comparison.csv"),
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(horizon_rows[0]))
+        writer.writeheader()
+        writer.writerows(horizon_rows)
     return summary
 
 

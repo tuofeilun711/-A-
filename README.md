@@ -63,6 +63,7 @@ wind-prediction/
 │   ├── q1_baseline.py       # 仅 validation 超参数选择
 │   ├── q2_reliability.py    # validation 误差增长与分量误差
 │   ├── q3_transfer.py       # transition 留出测试 + 排除 reverse_* 严格对照
+│   ├── q3_leave_one_out.py  # train 内留一轨迹交叉验证与稳定性检验
 │   └── sweep_stable.py      # k / AR 阶 / ridge α 的 validation 扫描
 ├── configs/model_config.json
 ├── results/                 # 汇总、逐时刻 RMSE、集成可靠性及第三问对照结果
@@ -97,10 +98,12 @@ python -m unittest discover -s tests -v
 python experiments/q1_baseline.py
 python experiments/q2_reliability.py
 python experiments/q3_transfer.py
+python experiments/q3_leave_one_out.py
 python experiments/sweep_stable.py
 ```
 
-注意：`main.py`、`q2_reliability.py` 和 `q3_transfer.py` 会写入 `results/` 中的对应结果文件。
+注意：`main.py`、`q2_reliability.py`、`q3_transfer.py` 和 `q3_leave_one_out.py`
+会写入 `results/` 中的对应结果文件。
 想重新生成第一、二问的基准状态，重跑 `python main.py` 即可。
 
 数据文件放在仓库根目录时，上述命令无需额外参数。也可以使用：
@@ -128,6 +131,8 @@ Windows 上同样直接用 `python main.py` 即可，脚本按自身位置定位
 - 同期持续性基线分别约 `0.17524`、`0.18845`。
 
 注意 `reverse_a1` 本身属于 train，因此全训练模型在 transition 上的结果只是“两条留出轨迹”测试，不是零样本反向工况测试。为补足这一点，`q3_transfer.py` 增加严格对照：排除所有 `reverse_*` 训练轨迹后重新训练，得到的 `reverse_a0/reverse_a3` 平均 RMSE 分别为 `0.10375/0.10492`，总体由 `0.10246` 小幅升到 `0.10433`。这支持同一几何和运行工况族内的有限短时迁移，但仍不足以证明物理普适性。
+
+`q3_leave_one_out.py` 进一步在 train 内部做 5 折留一轨迹验证。每折只用其余 4 条轨迹重新计算归一化、POD 和 AR，并使用 19 个互不重叠的 20 帧窗口。4 折可递推，平均 RMSE 为 `0.10750`，同期持续性基线为 `0.17811`，改善约 `39.6%`。但留出 `train_a1` 时末段误差明显增长，留出 `train_a6` 时谱半径达到 `7.319` 并发生闭环发散。因此固定 ridge 配置并非对所有轨迹都稳定，跨轨迹推广仍有明确边界。
 
 ## 局限
 
