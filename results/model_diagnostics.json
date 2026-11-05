@@ -1,0 +1,12 @@
+{
+  "n_modes": 50,
+  "ar_order": 3,
+  "ridge_alpha": 3.0,
+  "pod_energy_percent": 81.51871490478516,
+  "one_step_in_sample_r2": 0.9998993253283552,
+  "spectral_radius": 1.0000618854414667,
+  "input_len": 10,
+  "pred_len": 20,
+  "fluid_cells": 18282,
+  "state_dimension": 36564
+}

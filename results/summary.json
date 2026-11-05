@@ -1,0 +1,35 @@
+{
+  "validation_rmse": 0.10247813388705254,
+  "test_rmse": 0.10164230004884303,
+  "validation_persistence_rmse": 0.17579266047105194,
+  "test_persistence_rmse": 0.1772516218945384,
+  "test_improvement_percent": 42.65649083351214,
+  "test_window_mean": {
+    "test_a2@99": 0.1018092930316925,
+    "test_a2@199": 0.09995848909020424,
+    "test_a2@299": 0.09449867755174637,
+    "test_a2@379": 0.08772576414048672,
+    "test_a4@99": 0.10408575274050236,
+    "test_a4@199": 0.11030236221849918,
+    "test_a4@299": 0.10850336924195289,
+    "test_a4@379": 0.10625469237565995
+  },
+  "validation_window_mean": {
+    "validation_a05@99": 0.11621661819517612,
+    "validation_a05@199": 0.09560618177056313,
+    "validation_a05@299": 0.09104682989418507,
+    "validation_a05@379": 0.10704290568828582
+  },
+  "diagnostics": {
+    "n_modes": 50,
+    "ar_order": 3,
+    "ridge_alpha": 3.0,
+    "pod_energy_percent": 81.51871490478516,
+    "one_step_in_sample_r2": 0.9998993253283552,
+    "spectral_radius": 1.0000618854414667,
+    "input_len": 10,
+    "pred_len": 20,
+    "fluid_cells": 18282,
+    "state_dimension": 36564
+  }
+}

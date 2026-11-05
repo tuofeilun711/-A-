@@ -1,0 +1,8 @@
+{
+  "n_modes": 50,
+  "ar_order": 3,
+  "ridge_alpha": 3.0,
+  "input_len": 10,
+  "pred_len": 20,
+  "selection_role": "validation"
+}

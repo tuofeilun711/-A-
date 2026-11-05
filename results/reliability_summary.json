@@ -1,0 +1,37 @@
+{
+  "role": "validation",
+  "n_modes": 50,
+  "ar_order": 3,
+  "ridge_alpha": 3.0,
+  "pod_energy_percent": 81.51871490478516,
+  "one_step_in_sample_r2": 0.9998993253283552,
+  "spectral_radius": 1.0000618854414667,
+  "validation_rmse": 0.10247813388705254,
+  "persistence_rmse": 0.17579266047105194,
+  "relative_improvement_percent": 41.70511236791494,
+  "rmse_horizon_1": 0.08956702053546906,
+  "rmse_horizon_20": 0.11974536813795567,
+  "ensemble_members": 20,
+  "windows": [
+    {
+      "start": 99,
+      "rmse_mean": 0.11621661819517612,
+      "rmse_final": 0.13459180295467377
+    },
+    {
+      "start": 199,
+      "rmse_mean": 0.09560618177056313,
+      "rmse_final": 0.11261884868144989
+    },
+    {
+      "start": 299,
+      "rmse_mean": 0.09104682989418507,
+      "rmse_final": 0.1033053770661354
+    },
+    {
+      "start": 379,
+      "rmse_mean": 0.10704290568828582,
+      "rmse_final": 0.1284654438495636
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+# The released data file must stay local.
+*.h5
+*.zip
+
+# Local runtime and Python caches.
+.pylibs/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Generated scratch output.
+*.log
+tmp/
+# Local scratch (analysis scripts, intermediate assets).
+_scratch/

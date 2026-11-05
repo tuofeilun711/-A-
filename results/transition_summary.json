@@ -1,0 +1,19 @@
+{
+  "role_note": "validation is the in-distribution reference; both transition trajectories are independent stress tests.",
+  "validation_reference_rmse": 0.10247813388705254,
+  "transition": {
+    "reverse_a0": {
+      "windows": 15,
+      "model_rmse_mean": 0.10210498573879402,
+      "model_rmse_std": 0.006866716228854218,
+      "persistence_rmse_mean": 0.17524003302057584
+    },
+    "reverse_a3": {
+      "windows": 11,
+      "model_rmse_mean": 0.10281157991425557,
+      "model_rmse_std": 0.006336589912508263,
+      "persistence_rmse_mean": 0.1884495354511521
+    }
+  },
+  "conclusion": "POD modes and trajectory-bounded pooled AR dynamics retain short-horizon accuracy on the reverse-flow stress test, but the result does not establish general physical universality."
+}
